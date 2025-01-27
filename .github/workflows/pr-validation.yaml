@@ -1,24 +1,30 @@
-name: wf-linting-build-jobs
+name: Pull Request Validation
+
 on:
   pull_request:
     branches:
       - develop
+
 jobs:
-  linting-job:
-    runs-on: ubuntu-latest
-    steps: 
-      - name: checkout repository
-        uses: actions/checkout@v4
-      - name: Lint HTML files
-        run: npx htmlhint "**/*.html"
-      - name: Lint CSS Files
-        run: npx stylelint "**/*.css"
-  build-job:
-    needs: linting-job
+  develop-pr-job:
+    name: Validate Pull Request
     runs-on: ubuntu-latest
     steps:
-      - name: checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Build with Parcel
-        run:
-          npx parcel build "./src/index.html" --dist-dir "./dev" --public-url "./"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Lint HTML and CSS Files
+        run: |
+          npx htmlhint "**/*.html"
+          npx stylelint "**/*.css"
+
+      - name: Build Static Website
+        run: npx parcel build "./src/index.html" --dist-dir "./dev" --public-url "./"

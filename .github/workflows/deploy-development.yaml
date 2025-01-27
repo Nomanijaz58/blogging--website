@@ -1,0 +1,54 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build-job:
+    name: Build Website
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout Repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # Step 3: Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Step 4: Build the static website
+      - name: Build Website
+        run: |
+          npx parcel build "./src/index.html" --dist-dir "./dist" --public-url "./"
+
+      # Step 5: Upload Artifacts
+      - name: Upload Artifacts
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist"
+          name: "development-artifact"
+
+  deploy-job:
+    name: Deploy to GitHub Pages
+    needs: build-job
+    permissions:
+      pages: write
+      id-token: write
+    environment: "development"
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Deploy Build Artifacts to GitHub Pages
+      - name: Deploy Build Artifacts on GitHub Pages
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: "development-artifact"
